@@ -1,5 +1,5 @@
 
-import { WS_COMMAND_TYPES } from './constants';
+import { WS_COMMAND_TYPES } from '../constants';
 
 export interface IClientData {
   ws: any;

@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const calculateTargets_1 = require("./../utils/calculateTargets");
+const habdleTargets_1 = require("../utils/habdleTargets");
 const constants_1 = require("../../constants");
-const defineGameData = (parsedData, gameData, gameWithBot) => {
+const defineGame = (parsedData, gameData, gameWithBot) => {
     const { gameId, ships, indexPlayer } = parsedData;
-    const targets = (0, calculateTargets_1.calculateTargets)(ships);
+    const targets = (0, habdleTargets_1.habdleTargets)(ships);
     if (!gameData[gameId]) {
         gameData[gameId] = { player1: { ships: targets, indexPlayer } };
         if (gameWithBot) {
@@ -16,4 +16,4 @@ const defineGameData = (parsedData, gameData, gameWithBot) => {
         gameData[gameId].player2 = { ships: targets, indexPlayer };
     }
 };
-exports.default = defineGameData;
+exports.default = defineGame;

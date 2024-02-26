@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateTargets = void 0;
-const calculateTargets = (ships) => {
+exports.habdleTargets = void 0;
+const habdleTargets = (ships) => {
     return ships.map((ship) => {
         const targets = new Array(ship.length).fill(ship.position);
         return targets.map((target, index) => {
@@ -12,4 +12,4 @@ const calculateTargets = (ships) => {
         });
     });
 };
-exports.calculateTargets = calculateTargets;
+exports.habdleTargets = habdleTargets;

@@ -1,8 +1,8 @@
-export { default as createRoomWithUser } from './createRoomWithUser';
-export { default as handleWsSendEvent } from './handleWsSendEvent';
-export { default as createGame } from './createGame';
-export { default as defineGameData } from './defineGameData';
-export { default as startGame } from './startGame';
-export { default as defineAttackResult } from './defineAttackResult';
-export { default as handleAttack } from './handleAttack';
-export { default as createBotConnection } from './botConnection';
+export { default as createRoomWithUser } from './createNewRoomWithUser'
+export { default as handleWsSendEvent } from './handleWsEvent'
+export { default as createGame } from './createNewGame'
+export { default as defineGameData } from './defineGame'
+export { default as startGame } from './createNewGame'
+export { default as defineAttackResult } from './defineResultAttack'
+export { default as handleAttack } from './handleAttacks'
+export { default as createBotConnection } from './botConnection'

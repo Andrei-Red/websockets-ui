@@ -1,4 +1,4 @@
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer, WebSocket } from 'ws'
 import {
   IClientData,
   IClients,
@@ -6,8 +6,8 @@ import {
   IPlayers,
   IRegData,
   IRoom,
-} from './../../types';
-import { WS_COMMAND_TYPES } from '../../constants';
+} from '../types'
+import { WS_COMMAND_TYPES } from '../../constants'
 import {
   createBotConnection,
   createGame,
@@ -15,19 +15,19 @@ import {
   defineGameData,
   handleAttack,
   handleWsSendEvent,
-  startGame,
-} from './../handlers';
-import sendBotRandomAttack from "../utils/sendBotRandomAttack";
+} from './../handlers'
+import botRandomAttack from "../utils/botRandomAttack"
+import startNewGame from "../handlers/startNewGame";
 
 
-let rooms: IRoom[] = [];
-let userName: string = '';
-let gameData = {} as IGame;
-let shooterId = '';
-let gameWithBot = false;
-let botWebsocket = {} as WebSocket;
+let rooms: IRoom[] = []
+let userName: string = ''
+let gameData = {} as IGame
+let shooterId = ''
+let gameWithBot = false
+let botWebsocket = {} as WebSocket
 
-export const wsServer = new WebSocketServer({ port: 3000 });
+export const wsServer = new WebSocketServer({ port: 3000 })
 
 export const handleWsMessageEvent = (
   ws: WebSocket,
@@ -35,72 +35,74 @@ export const handleWsMessageEvent = (
   clients: IClients,
 ) => {
   ws.on('message', (message: IRegData) => {
-    const parsedMessage = JSON.parse(message.toString());
+    const parsedMessage = JSON.parse(message.toString())
 
     if (parsedMessage?.type === WS_COMMAND_TYPES.REG) {
-      const parsedData = JSON.parse(parsedMessage?.data?.toString());
-      userName = parsedData?.name;
-      (clients[userId] as IClientData).userName = userName;
+      const parsedData = JSON.parse(parsedMessage?.data?.toString())
+      userName = parsedData?.name
+      clients[userId].userName = userName
 
       const data = {
         name: parsedData?.name,
         index: userId,
         error: false,
         errorText: '',
-      };
+      }
 
-      handleWsSendEvent(ws, WS_COMMAND_TYPES.REG, data);
-      handleWsSendEvent(ws, WS_COMMAND_TYPES.UPDATE_WINNERS, []);
-      handleWsSendEvent(ws, WS_COMMAND_TYPES.UPDATE_ROOM, rooms);
+      handleWsSendEvent(ws, WS_COMMAND_TYPES.REG, data)
+      handleWsSendEvent(ws, WS_COMMAND_TYPES.UPDATE_WINNERS, [])
+      handleWsSendEvent(ws, WS_COMMAND_TYPES.UPDATE_ROOM, rooms)
     }
 
     if (parsedMessage?.type === WS_COMMAND_TYPES.CREATE_ROOM) {
-      const roomWithOneUser = rooms.find((room) => room.roomUsers.length === 1);
+      const roomWithOneUser = rooms.find((room) => room.roomUsers.length === 1)
 
       // block possibility create more then 1 room for active session
-      if (roomWithOneUser) return;
+      if (roomWithOneUser) return
 
-      const userName = clients[userId]?.userName as string;
+      const userName = clients[userId]?.userName as string
 
-      createRoomWithUser(rooms, userName, userId);
+      createRoomWithUser(rooms, userName, userId)
     }
 
     if (parsedMessage?.type === WS_COMMAND_TYPES.SINGLE_PLAY) {
-      botWebsocket = createBotConnection();
+      botWebsocket = createBotConnection()
 
       const gameId = (Date.now() + Math.random()).toString()
-      gameWithBot = true;
+      gameWithBot = true
 
       const gameDataResponse = {
         idGame: gameId,
         idPlayer: userId,
-      };
+      }
 
-      handleWsSendEvent(ws, WS_COMMAND_TYPES.CREATE_GAME, gameDataResponse);
+      handleWsSendEvent(ws, WS_COMMAND_TYPES.CREATE_GAME, gameDataResponse)
     }
 
     if (parsedMessage?.type === WS_COMMAND_TYPES.ADD_USER_TO_ROOM) {
-      const parsedData = JSON.parse(parsedMessage?.data?.toString());
+      const parsedData = JSON.parse(parsedMessage?.data?.toString())
 
-      rooms = createGame(rooms, parsedData, userId, clients);
+      rooms = createGame(rooms, parsedData, userId, clients)
     }
 
     if (parsedMessage?.type === WS_COMMAND_TYPES.ADD_SHIPS) {
-      const parsedData = JSON.parse(parsedMessage?.data?.toString());
+      const parsedData = JSON.parse(parsedMessage?.data?.toString())
 
-      defineGameData(parsedData, gameData, gameWithBot);
+      defineGameData(parsedData, gameData, gameWithBot)
 
-      shooterId = startGame(gameData, parsedData.gameId, shooterId, clients);
+      shooterId = startNewGame(gameData, parsedData.gameId, shooterId, clients)
+      // shooterId = startNewGame(gameData, parsedData.gameId, shooterId, clients)
+      // shooterId = startNewGame(gameData, parsedData.gameId, shooterId, clients)
     }
 
     if (
       parsedMessage?.type === WS_COMMAND_TYPES.ATTACK ||
       parsedMessage?.type === WS_COMMAND_TYPES.RANDOM_ATTACK
     ) {
-      const parsedData = JSON.parse(parsedMessage?.data?.toString());
+      const parsedData = JSON.parse(parsedMessage?.data?.toString())
 
       // ignore out of turn attacks
-      if (shooterId !== parsedData.indexPlayer) return;
+      if (shooterId !== parsedData.indexPlayer) return
 
       const { updatedGameData, updatedShooterId } = handleAttack(
         clients,
@@ -108,25 +110,25 @@ export const handleWsMessageEvent = (
         parsedMessage,
         shooterId,
         rooms,
-      );
+      )
 
       const isGameFinished = !Object.keys(
         updatedGameData[parsedData?.gameId] as IPlayers,
-      ).length;
+      ).length
 
       if (isGameFinished && botWebsocket.readyState === WebSocket.OPEN) {
-        botWebsocket.close();
+        botWebsocket.close()
       }
 
-      sendBotRandomAttack(
+      botRandomAttack(
         updatedShooterId,
         parsedData?.gameId,
         isGameFinished,
         botWebsocket,
-      );
+      )
 
-      gameData = updatedGameData;
-      shooterId = updatedShooterId;
+      gameData = updatedGameData
+      shooterId = updatedShooterId
     }
-  });
-};
+  })
+}

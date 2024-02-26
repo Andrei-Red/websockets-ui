@@ -4,7 +4,8 @@ exports.handleWsMessageEvent = exports.wsServer = void 0;
 const ws_1 = require("ws");
 const constants_1 = require("../../constants");
 const handlers_1 = require("./../handlers");
-const sendBotRandomAttack_1 = require("../utils/sendBotRandomAttack");
+const botRandomAttack_1 = require("../utils/botRandomAttack");
+const startNewGame_1 = require("../handlers/startNewGame");
 let rooms = [];
 let userName = '';
 let gameData = {};
@@ -55,7 +56,9 @@ const handleWsMessageEvent = (ws, userId, clients) => {
         if ((parsedMessage === null || parsedMessage === void 0 ? void 0 : parsedMessage.type) === constants_1.WS_COMMAND_TYPES.ADD_SHIPS) {
             const parsedData = JSON.parse((_d = parsedMessage === null || parsedMessage === void 0 ? void 0 : parsedMessage.data) === null || _d === void 0 ? void 0 : _d.toString());
             (0, handlers_1.defineGameData)(parsedData, gameData, gameWithBot);
-            shooterId = (0, handlers_1.startGame)(gameData, parsedData.gameId, shooterId, clients);
+            shooterId = (0, startNewGame_1.default)(gameData, parsedData.gameId, shooterId, clients);
+            // shooterId = startNewGame(gameData, parsedData.gameId, shooterId, clients)
+            // shooterId = startNewGame(gameData, parsedData.gameId, shooterId, clients)
         }
         if ((parsedMessage === null || parsedMessage === void 0 ? void 0 : parsedMessage.type) === constants_1.WS_COMMAND_TYPES.ATTACK ||
             (parsedMessage === null || parsedMessage === void 0 ? void 0 : parsedMessage.type) === constants_1.WS_COMMAND_TYPES.RANDOM_ATTACK) {
@@ -68,7 +71,7 @@ const handleWsMessageEvent = (ws, userId, clients) => {
             if (isGameFinished && botWebsocket.readyState === ws_1.WebSocket.OPEN) {
                 botWebsocket.close();
             }
-            (0, sendBotRandomAttack_1.default)(updatedShooterId, parsedData === null || parsedData === void 0 ? void 0 : parsedData.gameId, isGameFinished, botWebsocket);
+            (0, botRandomAttack_1.default)(updatedShooterId, parsedData === null || parsedData === void 0 ? void 0 : parsedData.gameId, isGameFinished, botWebsocket);
             gameData = updatedGameData;
             shooterId = updatedShooterId;
         }

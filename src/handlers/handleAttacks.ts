@@ -1,36 +1,36 @@
-import { IClients, IGame, IPlayers, IRoom, TTarget } from '../../types';
-import { ATTACK_STATUSES, WS_COMMAND_TYPES } from '../../constants';
-import defineCoordinates from './../utils/defineCoordinates';
-import defineAttackResult from './defineAttackResult';
-import { findCoordinatesAroundKilledShip } from './../utils/findCoordinatesAroundKilledShip';
-import handleWsSendEvent from './handleWsSendEvent';
+import { IClients, IGame, IPlayers, IRoom, TTarget } from '../types'
+import { ATTACK_STATUSES, WS_COMMAND_TYPES } from '../../constants'
+import handlerCoordinates from '../utils/handlerCoordinates'
+import defineResultAttack from './defineResultAttack'
+import { findCoordinatesKilledShip } from '../utils/findCoordinatesKilledShip'
+import handleWsEvent from './handleWsEvent'
 
-const handleAttack = (
+const handleAttacks = (
   clients: IClients,
   gameData: IGame,
   parsedMessage: any,
   shooterId: string,
   rooms: IRoom[],
 ): {
-  updatedGameData: IGame;
-  updatedShooterId: string;
+  updatedGameData: IGame
+  updatedShooterId: string
 } => {
-  const parsedData = JSON.parse(parsedMessage?.data?.toString());
+  const parsedData = JSON.parse(parsedMessage?.data?.toString())
 
-  const { gameId, indexPlayer: shooterIndex } = parsedData;
+  const { gameId, indexPlayer: shooterIndex } = parsedData
 
-  const shotCoordinates = defineCoordinates(parsedMessage);
+  const shotCoordinates = handlerCoordinates(parsedMessage)
   const { isHit, isKilled, killedShip, rivalData, updatedShooterId } =
-    defineAttackResult(
+    defineResultAttack(
       gameData[gameId] as IPlayers,
       shooterId,
       shotCoordinates,
-    );
+    )
 
-  shooterId = updatedShooterId;
+  shooterId = updatedShooterId
 
-  const { player1, player2 } = gameData[gameId] as IPlayers;
-  const { x, y } = shotCoordinates;
+  const { player1, player2 } = gameData[gameId] as IPlayers
+  const { x, y } = shotCoordinates
 
   Object.entries(clients)
     .filter(
@@ -46,9 +46,9 @@ const handleAttack = (
           : isHit
             ? ATTACK_STATUSES.SHOT
             : ATTACK_STATUSES.MISS,
-      };
+      }
 
-      handleWsSendEvent(client.ws, WS_COMMAND_TYPES.ATTACK, attackResultData);
+      handleWsEvent(client.ws, WS_COMMAND_TYPES.ATTACK, attackResultData)
 
       if (isKilled) {
         killedShip.forEach((targets) => {
@@ -57,71 +57,71 @@ const handleAttack = (
               position: { x: targets.x, y: targets.y },
               currentPlayer: shooterIndex,
               status: ATTACK_STATUSES.KILLED,
-            };
+            }
 
-            handleWsSendEvent(
+            handleWsEvent(
               client.ws,
               WS_COMMAND_TYPES.ATTACK,
               killedAttackResultData,
-            );
+            )
           }
-        });
+        })
 
         const coordinatesAroundKilledShip =
-          findCoordinatesAroundKilledShip(killedShip);
+          findCoordinatesKilledShip(killedShip)
 
         coordinatesAroundKilledShip.forEach((coordinate) => {
           const missedAttackResultData = {
             position: { x: coordinate.x, y: coordinate.y },
             currentPlayer: shooterIndex,
             status: ATTACK_STATUSES.MISS,
-          };
+          }
 
-          handleWsSendEvent(
+          handleWsEvent(
             client.ws,
             WS_COMMAND_TYPES.ATTACK,
             missedAttackResultData,
-          );
-        });
+          )
+        })
       }
 
       const allShipsKilled = (rivalData.ships as TTarget[][]).every((targets) =>
         targets.every((target) => target.hit),
-      );
+      )
 
       if (isKilled && allShipsKilled) {
         if (clientId === shooterId) {
-          client.wins += 1;
+          client.wins += 1
         }
 
-        gameData[gameId] = {} as IPlayers;
+        gameData[gameId] = {} as IPlayers
 
         const finishGameData = {
           winPlayer: shooterId,
-        };
+        }
 
         const winnerData = {
           name: client.userName,
           wins: client.wins,
-        };
+        }
 
-        handleWsSendEvent(client.ws, WS_COMMAND_TYPES.FINISH, finishGameData);
-        handleWsSendEvent(
+        handleWsEvent(client.ws, WS_COMMAND_TYPES.FINISH, finishGameData)
+        handleWsEvent(
           client.ws,
           WS_COMMAND_TYPES.UPDATE_WINNERS,
           winnerData,
-        );
-        handleWsSendEvent(client.ws, WS_COMMAND_TYPES.UPDATE_ROOM, rooms);
+        )
+        handleWsEvent(client.ws, WS_COMMAND_TYPES.UPDATE_ROOM, rooms)
       } else {
         const turnData = {
           currentPlayer: shooterId,
-        };
+        }
 
-        handleWsSendEvent(client.ws, WS_COMMAND_TYPES.TURN, turnData);
+        handleWsEvent(client.ws, WS_COMMAND_TYPES.TURN, turnData)
       }
-    });
+    })
 
-  return { updatedGameData: gameData, updatedShooterId: shooterId };
-};
+  return { updatedGameData: gameData, updatedShooterId: shooterId }
+}
 
-export default handleAttack;
+export default handleAttacks

@@ -1,20 +1,21 @@
-import { wsServer } from './../ws_server';
-import { IClients, IGame, IPlayers } from '../../types';
-import { WS_COMMAND_TYPES } from '../../constants';
-import handleWsSendEvent from './handleWsSendEvent';
+import { wsServer } from './../ws_server'
+import { IClients, IGame, IPlayers } from '../types'
+import { WS_COMMAND_TYPES } from '../../constants'
+import handleWsEvent from './handleWsEvent'
 
-const startGame = (
+const startNewGame = (
   gameData: IGame,
   gameId: string,
   shooterId: string,
   clients: IClients,
 ) => {
   if (gameData[gameId]?.player1 && gameData[gameId]?.player2) {
-    const { player1, player2 } = gameData[gameId] as IPlayers;
+    const { player1, player2 } = gameData[gameId] as IPlayers
 
-    shooterId = player1.indexPlayer;
+    shooterId = player1.indexPlayer
 
-    [...wsServer.clients].forEach((client) => {
+        const wsServerClients = [...wsServer.clients]
+    wsServerClients.forEach((client) => {
       if (
         client === clients[player1.indexPlayer]?.ws ||
         client === clients[player2.indexPlayer]?.ws
@@ -28,17 +29,17 @@ const startGame = (
             : {
                 ships: player2.ships,
                 currentPlayerIndex: player2.indexPlayer,
-              };
+              }
 
-        handleWsSendEvent(client, WS_COMMAND_TYPES.START_GAME, data);
-        handleWsSendEvent(client, WS_COMMAND_TYPES.TURN, {
+        handleWsEvent(client, WS_COMMAND_TYPES.START_GAME, data)
+        handleWsEvent(client, WS_COMMAND_TYPES.TURN, {
           currentPlayer: shooterId,
-        });
+        })
       }
-    });
+    })
   }
 
-  return shooterId;
-};
+  return shooterId
+}
 
-export default startGame;
+export default startNewGame

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findCoordinatesAroundKilledShip = void 0;
-const findCoordinatesAroundKilledShip = (ship) => {
+exports.findCoordinatesKilledShip = void 0;
+const findCoordinatesKilledShip = (ship) => {
     const coordinates = [];
     const { direction } = ship[0];
     if (direction) {
@@ -34,4 +34,4 @@ const findCoordinatesAroundKilledShip = (ship) => {
     }
     return coordinates;
 };
-exports.findCoordinatesAroundKilledShip = findCoordinatesAroundKilledShip;
+exports.findCoordinatesKilledShip = findCoordinatesKilledShip;
