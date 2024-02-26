@@ -70,7 +70,7 @@ export class WS_connection implements IWS_connection {
                 )
         }
 
-        console.log('updateRoom', JSON.stringify({...updateRoom, id: 0}))
+        // console.log('updateRoom', JSON.stringify({...updateRoom, id: 0}))
 
         this.socketsHub.forEach(socket => socket.send(JSON.stringify({...updateRoom, id: 0})));
     }
